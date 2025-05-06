@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Inventory System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+    <h1>📦 Smart Inventory System</h1>
+</header>
+
+<main>
+
+<section>
+    <h2>➕ Add Product</h2>
+    <form method="post" action="/add">
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="text" name="code" placeholder="Code" required>
+        <input type="number" name="quantity" placeholder="Quantity" required>
+        <input type="date" name="expiration_date" id="expiration_date" required>
+        <button type="submit">Add</button>
+    </form>
+</section>
+
+<section>
+    <h2>🔍 Search Products</h2>
+    <form method="get" action="/">
+        <input type="text" name="q" placeholder="Search by name or code" value="{{ query }}">
+        <button type="submit">Search</button>
+    </form>
+
+    <form method="get" action="/export">
+        <button type="submit">📥 Export to Excel</button>
+    </form>    
+</section>
+
+<section>
+    <h2>📋 Current Products</h2>
+    <p class="alerta">⚠️ Products highlighted in red have low stock (less than 5 units).</p>
+    <p class="alerta">⏰ Products highlighted in orange will expire within 7 days.</p>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Quantity</th>
+            <th>Expiration Date</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for p in products %}
+        <tr class="{% if p.low_stock %}stock-low{% elif p.expiring_soon %}expiring-soon{% endif %}">
+            <td>{{ p.name }}</td>
+            <td>{{ p.code }}</td>
+            <td>{{ p.quantity }}</td>
+            <td>{{ p.expiration_date }}</td>
+            <td>
+                <form method="post" action="/update/{{ p.id }}">
+                    <input type="number" name="quantity" min="0" value="{{ p.quantity }}" required>
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+            <td><a href="/delete/{{ p.id }}">❌</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<section>
+    <h2>📈 Stock Summary</h2>
+    <canvas id="stockChart" width="600" height="300"></canvas>
+</section>
+
+<section>
+    {% if movements %}
+    <h2>📊 Movement History</h2>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Product</th>
+            <th>Type</th>
+            <th>Quantity</th>
+        </tr>
+        {% for m in movements %}
+        <tr>
+            <td>{{ m[0] }}</td>
+            <td>{{ m[1] }}</td>
+            <td>{{ m[2] }}</td>
+            <td>{{ m[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+</section>
+
+</main>
+
+<script src="{{ url_for('static', filename='chart.js') }}"></script>
+<script src="{{ url_for('static', filename='expiration_date.js') }}"></script>
+</body>
+</html>
